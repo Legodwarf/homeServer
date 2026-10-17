@@ -1,0 +1,15 @@
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      # MANDATORY: Your Cloudflare Zero Trust Tunnel Token
+      - TUNNEL_TOKEN=your_cloudflare_tunnel_token_here
+    networks:
+      - cf_tunnel_net
+
+networks:
+  cf_tunnel_net:
+    external: true

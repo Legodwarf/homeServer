@@ -1,0 +1,44 @@
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    user: 1000:1000
+
+    # OPTIONAL: GPU Hardware Transcoding groups (find IDs on Ubuntu with `getent group render`)
+    # group_add:
+    #   - "109" # render group ID
+    #   - "44"  # video group ID
+
+    environment:
+      # ==========================================
+      # MANDATORY SETTINGS
+      # ==========================================
+      - TZ=America/Denver
+
+      # ==========================================
+      # OPTIONAL SETTINGS (Uncomment as needed)
+      # ==========================================
+      # - JELLYFIN_PublishedServerUrl=http://100.x.y.z:8096
+      # - NVIDIA_VISIBLE_DEVICES=all
+      # - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
+
+    ports:
+      # MANDATORY: Web UI & HTTP traffic (Reachable via LAN IP and Host Tailscale IP)
+      - "8096:8096/tcp"
+      # OPTIONAL: Local network client auto-discovery
+      - "7359:7359/udp"
+
+    volumes:
+      - ./config:/config
+      - ./cache:/cache
+      - /mnt/media/movies:/media/movies:ro
+      - /mnt/media/tv:/media/tv:ro
+
+    # OPTIONAL: Mount RAM disk for transcoding
+    # tmpfs:
+    #   - /cache/transcodes:size=4G
+
+    # OPTIONAL: Intel QuickSync / AMD VAAPI Hardware Acceleration
+    # devices:
+    #   - /dev/dri:/dev/dri

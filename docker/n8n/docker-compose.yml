@@ -1,0 +1,53 @@
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    environment:
+      # ==========================================
+      # MANDATORY SETTINGS (Cloudflare & Core)
+      # ==========================================
+      - N8N_HOST=n8n.yourdomain.com
+      - N8N_PROTOCOL=https
+      - N8N_PORT=5678
+      - WEBHOOK_URL=https://n8n.yourdomain.com/
+      - TZ=America/Denver
+      - GENERIC_TIMEZONE=America/Denver
+      - N8N_ENCRYPTION_KEY=your_super_secret_encryption_key
+
+      # ==========================================
+      # OPTIONAL SETTINGS (Automation & Maintenance)
+      # ==========================================
+      # --- Database Execution Pruning ---
+      - EXECUTIONS_DATA_PRUNE=true
+      - EXECUTIONS_DATA_MAX_AGE=168
+      - EXECUTIONS_DATA_PRUNE_MAX_COUNT=10000
+
+      # --- Allow External NPM Packages in Code Nodes (For @actual-app/api) ---
+      # Uncomment if you build a custom n8n Docker image with @actual-app/api installed
+      # - NODE_FUNCTION_ALLOW_EXTERNAL=@actual-app/api
+
+      # --- Security & Proxy ---
+      # - N8N_PROXY_HOPS=1
+
+    # OPTIONAL: Expose to LAN/Tailscale if you want direct local access bypassing Cloudflare
+    # ports:
+    #   - "5678:5678"
+
+    volumes:
+      - ./n8n_data:/home/node/.n8n
+      # - ./local_files:/files
+
+    # Allows n8n to talk to services installed directly on the Ubuntu host (like native Ollama on port 11434)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    networks:
+      - cf_tunnel_net   # Reaches Cloudflare Tunnel
+      - automation_net  # Reaches Actual Budget (http://actual_server:5006) privately
+
+networks:
+  cf_tunnel_net:
+    external: true
+  automation_net:
+    external: true
